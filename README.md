@@ -137,4 +137,4 @@ Internal load balancing: used to balance the loads automatically and allocates t
 External load balancing: It transfers or drags the entire traffic from the external loads to backend pods.
 
 
------END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END---------
+-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----END-----
