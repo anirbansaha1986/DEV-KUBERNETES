@@ -12,7 +12,7 @@ POD:
 •	A Pod is not a process, but an environment for running a container. A Pod persists until it is deleted.
 Terminology and Controllers:
 •	ReplicaSet: the default, is a relatively simple type. It ensures the specified number of pods are running
-•	Deployment: is a declarative way of managing pods via ReplicaSets. Includes rollback and rolling update mechanisms
+•	Deployment: is a declarative way of managing pods via ReplicaSet. Includes rollback and rolling update mechanisms
 •	Daemonset: is a way of ensuring each node will run an instance of a pod. Used for cluster services, like health monitoring and log forwarding
 •	StatefulSet: is tailored to managing pods that must persist or maintain state
 •	Job and CronJob: run short-lived jobs as a one-off or on a schedule.
@@ -120,5 +120,186 @@ Internal load balancing: used to balance the loads automatically and allocates t
 External load balancing: It transfers or drags the entire traffic from the external loads to backend pods.
 
 
+
+
+ 
+KUBERNETES YAML:
+API ---- KIND ---- Format
+ 
+######################## simple-pod.yml ###################################
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simple-pod
+  labels:
+    env: test
+    app: gol
+spec:
+  containers:
+  - name: nginx
+    image: crsreddy1447/gol:1.0
+    ports:
+    - containerPort: 8080
+
+###### Service ######
+simple-pod-svc.yml:
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-svc
+spec:
+  selector:
+    app: gol
+  type:  NodePort
+  ports:
+  - name:  https
+    port:  8080
+    nodePort: 30002
+    protocol: TCP
+
+ 
+############################ ReplicationController ###############################
+simple-pod-replication.yml:
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: simple-rc
+spec:
+  replicas: 3
+  selector:
+    app: gol
+  template:
+    metadata:
+      labels:
+        app: gol
+        ver: "1.0"
+    spec:
+      containers:
+      - name: simple-pod
+        image: crsreddy1447/gol:1.0
+        ports:
+        - containerPort: 8080
+
+################################## ReplicaSet.yml #################################
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  # modify replicas according to your case
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: gcr.io/google_samples/gb-frontend:v3 
+	
+############################### Deployment.yml ##############################################
+ 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-dep
+  namespace: default
+spec:
+  replicas: 2
+  strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app: hello-dep
+  template:
+    metadata:
+      labels:
+        app: hello-dep
+    spec:
+      containers:
+      - image: gcr.io/google-samples/hello-app:2.0
+        imagePullPolicy: Always
+        name: hello-dep
+        ports:
+        - containerPort: 8080
+*****************************		
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+ 
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+KUBERNETES COMMANDS:
+
+$ kubectl apply -f <pathofyaml>  # To execute the yaml file
+$ kubectl delete -f <pathofyml>  # To delete the applied features
+$ kubectl get <object-kind> 
+$ kubectl create -f deploy.yml   ----> Uses first time only
+$ kubectl apply -f deploy.yml
+$ kubectl describe deploy <app>
+$ kubectl get rs  #  Details of replicaset
+$ kubectl get pods # Details of POD
+$ kubectl describe rs  # Full details  of Replica Set
+
+$ kubectl get nodes -w # watch the output changes 
+$ kubectl get nodes -o wide # more info
+$ kubectl get pods # List all the pods you created
+$ kubectl get pods --all-namespaces   # Lists all the pods in the cluster irrespective of who created
+
+***********Rolling Update To deployment ******************************
+
+$ kubectl apply -f deploy.yml –record  # To record and apply the deploy 
+$ kubectl rollout status deployments <app name>
+$ kubectl get deploy <app name>
+$ kubectl rollout history deployments <app name>
+$ kubectl get rs 
+
+*******************UNDO Rolled Updates ******************************
+
+$ kubectl describe deploy <app-name>
+$ kubectl rollout undo deployment <app-name> --to-revsion=1
+$ kubectl get deploy
+$ kubectl rollout status deployments <app name>
 
 
